@@ -16,7 +16,7 @@ namespace KataSuperMarket
     // 2 x A for 5
     // 3 x C for 18
     //
-    // 50% off all baskets on Fridays
+    // 50% off all baskets on Fridays in addition to existing discounts!!! WOHOO!
 
     [TestClass]
     public class SuperMarketKata
@@ -39,32 +39,65 @@ namespace KataSuperMarket
         }
 
         [TestMethod]
-        public void TwoItemBCheckOut()
+        [DataRow("B", 10, DisplayName ="Two item B's cost 10")]
+        [DataRow("C", 14, DisplayName = "Two item C's cost 14")]
+        public void TwoItemCheckOut(string itemSku, int cost)
         {
             //arrange
             var checkout = new Checkout();
-            checkout.AddItem("B");
-            checkout.AddItem("B");
+            checkout.AddItem(itemSku);
+            checkout.AddItem(itemSku);
 
             //act
             var total = checkout.GetTotal();
 
             //assert
-            Assert.AreEqual(10, total);
+            Assert.AreEqual(cost, total);
+        }
+
+        [TestMethod]
+        [DataRow("B",2,5, DisplayName = "Two Item Bs at half off")]
+        [DataRow("C", 1, 3.5, DisplayName = "One Item C at half off")]
+        public void FridayHalfOffDiscountCheck(string itemSku, int nitems,double expectedtotal)
+        {
+            //arrange
+            var checkout = new Checkout();
+            for(int i = 0; i < nitems; i++)
+            {
+                checkout.AddItem(itemSku);
+            }
+
+            //act
+            checkout.SetCheckoutDay("Friday");
+            var total = checkout.GetTotal();
+
+            //assert
+            Assert.AreEqual(expectedtotal,total);
+        }
+
+        [TestMethod]
+        public void FridayHalfOffDiscountCheckEqualFraction()
+        {
+            //arrange
+            var checkout = new Checkout();
+            checkout.AddItem("C");
+
+            //act
+            checkout.SetCheckoutDay("Friday");
+            var total = checkout.GetTotal();
+
+            //assert
+            Assert.AreEqual(3.5, total);
         }
 
     }
 
     public class Checkout
     {
-        private const int ItemACost = 3;
-        private string itemSku;
-        private const int ItemBCost = 5;
-        private string ItemBSku = "B";
-        private string ItemCSku = "C";
-        private const int ItemCCost = 7;
         private Dictionary<string, int> itemSkuCostDict = new Dictionary<string, int>();
-        private int nItems;
+        private double total;
+        private string day;
+        private const string discountDay = "Friday";
 
         public Checkout() {
             itemSkuCostDict.Add("A", 3);
@@ -72,19 +105,23 @@ namespace KataSuperMarket
             itemSkuCostDict.Add("C", 7);
         }
 
-        public void AddItem(string itemSku)
+        public void SetCheckoutDay(string day) 
         {
-            nItems++;
-            this.itemSku = itemSku;
+            this.day = day;
         }
 
-        public int GetTotal()
+        public void AddItem(string itemSku)
         {
-            if (nItems == 2) return 10;
-            return itemSkuCostDict[itemSku];
+            total += itemSkuCostDict[itemSku];
+        }
 
-            
-            
+        public double GetTotal()
+        {
+            if (this.day == discountDay) 
+            {
+                return total/2;
+            }
+            return total;
         }
     }
 }
