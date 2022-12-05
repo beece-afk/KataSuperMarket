@@ -76,18 +76,34 @@ namespace KataSuperMarket
         }
 
         [TestMethod]
-        public void FridayHalfOffDiscountCheckEqualFraction()
+        public void TwoItemAsEqualsFivePoundsDiscount()
         {
             //arrange
             var checkout = new Checkout();
-            checkout.AddItem("C");
+            checkout.AddItem("A");
+            checkout.AddItem("A");
 
             //act
-            checkout.SetCheckoutDay("Friday");
             var total = checkout.GetTotal();
 
             //assert
-            Assert.AreEqual(3.5, total);
+            Assert.AreEqual(5, total);
+        }
+
+        [TestMethod]
+        public void ThreeItemAsEqualsEIghtPoundsDiscount()
+        {
+            //arrange
+            var checkout = new Checkout();
+            checkout.AddItem("A");
+            checkout.AddItem("A");
+            checkout.AddItem("A");
+
+            //act
+            var total = checkout.GetTotal();
+
+            //assert
+            Assert.AreEqual(8, total);
         }
 
     }
@@ -98,6 +114,7 @@ namespace KataSuperMarket
         private double total;
         private string day;
         private const string discountDay = "Friday";
+        private int itemAcount = 0;
 
         public Checkout() {
             itemSkuCostDict.Add("A", 3);
@@ -112,11 +129,20 @@ namespace KataSuperMarket
 
         public void AddItem(string itemSku)
         {
+            if(itemSku == "A")
+            {
+                itemAcount++;
+            }
             total += itemSkuCostDict[itemSku];
         }
 
         public double GetTotal()
         {
+            if(itemAcount > 1 && itemAcount%2==0)
+            {
+                total -= (itemAcount / 2);
+            }
+
             if (this.day == discountDay) 
             {
                 return total/2;
