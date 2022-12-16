@@ -76,34 +76,42 @@ namespace KataSuperMarket
         }
 
         [TestMethod]
-        public void TwoItemAsEqualsFivePoundsDiscount()
+        [DataRow("A", 2, 5, DisplayName = "Two Item As for 5")]
+        [DataRow("A", 3, 8, DisplayName = "Three Item A for 8")]
+        [DataRow("C", 3, 18,DisplayName ="Three Item C for 18")]
+        [DataRow("C", 4, 25, DisplayName = "Four Item C for 25")]
+        public void DiscountsOnMultipleItemAAndCApply(string itemSku, int nitems, double expectedtotal)
         {
             //arrange
             var checkout = new Checkout();
-            checkout.AddItem("A");
-            checkout.AddItem("A");
+            for (int i = 0; i < nitems; i++)
+            {
+                checkout.AddItem(itemSku);
+            }
 
             //act
             var total = checkout.GetTotal();
 
             //assert
-            Assert.AreEqual(5, total);
+            Assert.AreEqual(expectedtotal, total);
         }
 
         [TestMethod]
-        public void ThreeItemAsEqualsEIghtPoundsDiscount()
+        public void MultipleItemsOfDifferentSkus()
         {
             //arrange
             var checkout = new Checkout();
             checkout.AddItem("A");
+            checkout.AddItem("B");
+            checkout.AddItem("C");
             checkout.AddItem("A");
-            checkout.AddItem("A");
+
 
             //act
             var total = checkout.GetTotal();
 
             //assert
-            Assert.AreEqual(8, total);
+            Assert.AreEqual(17, total);
         }
 
     }
@@ -115,6 +123,9 @@ namespace KataSuperMarket
         private string day;
         private const string discountDay = "Friday";
         private int itemAcount = 0;
+        private string itemASku = "A";
+        private string itemCSku  = "C";
+        private int itemCcount=0;
 
         public Checkout() {
             itemSkuCostDict.Add("A", 3);
@@ -129,25 +140,40 @@ namespace KataSuperMarket
 
         public void AddItem(string itemSku)
         {
-            if(itemSku == "A")
+            if(itemSku == itemASku)
             {
                 itemAcount++;
             }
+            else if (itemSku == itemCSku)
+            {
+                itemCcount++;
+            }
+
             total += itemSkuCostDict[itemSku];
         }
 
         public double GetTotal()
         {
-            if(itemAcount > 1 && itemAcount%2==0)
+            this.CheckForDiscounts();
+            return total;
+        }
+
+        public void CheckForDiscounts()
+        {
+            if (itemAcount > 1)
             {
                 total -= (itemAcount / 2);
             }
 
-            if (this.day == discountDay) 
+            if (itemCcount > 1)
             {
-                return total/2;
+                total -= ((itemCcount / 3) * 3);
             }
-            return total;
+
+            if (this.day == discountDay)
+            {
+                total /= 2;
+            }
         }
     }
 }
